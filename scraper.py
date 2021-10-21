@@ -1,7 +1,8 @@
-import time
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-from colorama import Fore, Back, Style
+from datetime import datetime
+import requests, os, time
+from dotenv import load_dotenv
 
 def goto(URL,driver):
     driver.get(URL)
@@ -17,7 +18,6 @@ def check_URL(URL, gpuName):
     options.add_argument("--log-level=3")
     driver = webdriver.Chrome('./chromedriver',chrome_options=options)
 
-    # driver.get('https://m.notebooksbilliger.de/nvidia+geforce+rtx+3080+founders+edition+686455')
     goto(URL, driver)
 
     time.sleep(1)
@@ -26,7 +26,6 @@ def check_URL(URL, gpuName):
     except:
         normalcookie(driver)
 
-    ## Checkups
 
     try:
         result = driver.execute_script('''
@@ -34,12 +33,20 @@ def check_URL(URL, gpuName):
     return result;
     ''')
 
+        
         if result == True:
-            print(Fore.RED + Back.WHITE + f'NO {gpuName} IN STOCK!!!!')
-            print(Style.RESET_ALL)
+
+            print('Running, no result found!')
         else :
-            print(Fore.GREEN + Back.WHITE + f'BUY BUY BUY {gpuName} IN STOCK!!!!!! {URL}')
-            print(Style.RESET_ALL)
+            current_time = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+            log = f"[{current_time}] : {gpuName}s are available at {URL}! \n"
+
+            with open('log.txt', 'a') as writer:
+                writer.write(log)
+
+            url = os.environ.get("DISCORD_URL")
+            requests.post(url,data = {'content': log})
+            
 
     except Exception as e:
         print(e)
@@ -47,11 +54,11 @@ def check_URL(URL, gpuName):
     driver.close()
 
 
-
+load_dotenv()
 while True:
     check_URL('https://m.notebooksbilliger.de/nvidia+geforce+rtx+3080+founders+edition+686455','3080')
     check_URL('https://m.notebooksbilliger.de/nvidia+geforce+rtx+3060+ti+founders+edition+720601','3060TI')
     check_URL('https://m.notebooksbilliger.de/nvidia+geforce+rtx+3080+ti+founders+edition+719852','3080TI')
     check_URL('https://m.notebooksbilliger.de/nvidia+geforce+rtx+3070+founders+edition+692950','3070')
     check_URL('https://m.notebooksbilliger.de/nvidia+geforce+rtx+3070+ti+founders+edition+jiu+725375','3070TI')
-    time.sleep(10)
+    time.sleep(5)
